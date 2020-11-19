@@ -1,4 +1,5 @@
 import pygame as pg
+from random import randint
 import os
 
 
@@ -6,14 +7,10 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 FPS = 60
-SPEED = [2, 2]
-
-
 
 
 class GameObject:
     x, y = 0, 0
-    pass
 
 
 class Player(GameObject):
@@ -22,12 +19,20 @@ class Player(GameObject):
         self.y = 0
         self.width = 25
         self.height = 25
-    pass
+        self.speed = 5
+
+    def move(self):
+        pass
+
+    def draw(self):
+        pass
 
 
 class Box(GameObject):
-    pass
-
+    def __init__(self):
+        self.x = randint(200, 300)
+        self.y = randint(200, 300)
+        self.color = BLACK
 
 class Wall(GameObject):
     pass
@@ -58,16 +63,17 @@ class GameWindow:
 
             keys = pg.key.get_pressed()
             if keys[pg.K_RIGHT] and (self.mainPlayer.x < self.width - self.mainPlayer.width):
-                self.mainPlayer.x += 10
+                self.mainPlayer.x += self.mainPlayer.speed
             if keys[pg.K_LEFT] and (self.mainPlayer.x > 0):
-                self.mainPlayer.x -= 10
+                self.mainPlayer.x -= self.mainPlayer.speed
             if keys[pg.K_UP] and (self.mainPlayer.y > 0):
-                self.mainPlayer.y -= 10
+                self.mainPlayer.y -= self.mainPlayer.speed
             if keys[pg.K_DOWN] and (self.mainPlayer.y < self.height - self.mainPlayer.height):
-                self.mainPlayer.y += 10
+                self.mainPlayer.y += self.mainPlayer.speed
 
 
             self.screen.fill(WHITE)
+
             pg.draw.rect(self.screen, RED, (self.mainPlayer.x, self.mainPlayer.y, self.mainPlayer.width, self.mainPlayer.height))
             pg.display.flip()
             pg.display.update()

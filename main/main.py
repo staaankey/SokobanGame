@@ -8,6 +8,13 @@ RED = (255, 0, 0)
 FPS = 60
 WIDHT = 800
 HEIGHT = 600
+SCREEN = pg.display.set_mode((WIDHT, HEIGHT))
+
+
+def getRandColor():
+    return (randint(0, 255), randint(0, 255), randint(0, 255))
+
+
 
 class GameObject:
     x, y = 0, 0
@@ -35,16 +42,13 @@ class Player(GameObject):
         pg.draw.rect(screen, RED, (self.x, self.y, self.width, self.height))
 
 class Box(GameObject):
-    def __init__(self):
-        self.x = randint(200, 300)
-        self.y = randint(200, 300)
-        self.width = randint(5, 15)
-        self.height = randint(5, 15)
-        self.count = 5
+    def __init__(self, coord=None, color=None, rad=None):
+        self.coord = coord
+        self.rad = rad
+        self.color = color
 
     def draw(self, screen):
-        pg.draw.rect(screen, BLACK, (self.x, self.y, 10, 10))
-
+        pg.draw.circle(screen, self.color, self.coord, self.rad)
 
 
 
@@ -59,11 +63,20 @@ class Map(GameObject):
         pg.draw.line(screen, BLACK, (50, 50), (500, 50))
         pg.draw.line(screen, BLACK, (500, 50), (500, 500))
 
+class Manager:
+    def __init__(self):
+        self.countOfTargets = 5
+        self.targets = []
+
+    def createTargets(self):
+        for i in range(self.countOfTargets):
+            self.targets.append(Box((randint(250, 400), randint(200, 350)), getRandColor(), 10))
+
+    def showTargets(self, screen):
+        for i in self.targets:
+            i.draw(screen)
 
 
-
-class GameField:
-    pass
 
 class GameWindow:
     def __init__(self):
@@ -71,14 +84,18 @@ class GameWindow:
         self.width = 800
         self.height = 600
         self.title = "Sokoban"
-        self.screen = pg.display.set_mode((self.width, self.height))
-        self.screen.fill(WHITE)
+        SCREEN.fill(WHITE)
         pg.display.set_caption(self.title)
         self.player = Player()
         self.map = Map()
         self.boxes = Box()
+        self.manager = Manager()
+        self.manager.createTargets()
+
+
 
     def mainLoop(self):
+
         finished = False
         clock = pg.time.Clock()
 
@@ -98,11 +115,15 @@ class GameWindow:
                 self.player.move("down")
 
 
-            self.screen.fill(WHITE)
+            SCREEN.fill(WHITE)
 
-            self.player.draw(self.screen)
-            #self.map.draw(self.screen)
-            self.boxes.draw(self.screen)
+            self.player.draw(SCREEN)
+            #self.map.draw(screen)
+            #self.boxes.draw(screen)
+            self.manager.showTargets(SCREEN)
+
+
+
             pg.display.flip()
             pg.display.update()
             clock.tick(FPS)
@@ -111,8 +132,10 @@ class GameWindow:
 
 
 def main():
+
     window = GameWindow()
     window.mainLoop()
+
     print('Game over!')
 
 

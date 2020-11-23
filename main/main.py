@@ -6,6 +6,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREY = (211, 211, 211)
+YELLOW = (250, 240, 170)
 FPS = 60
 WIDTH = 800
 HEIGHT = 600
@@ -23,13 +24,13 @@ class GameObject:
 
 class Player(GameObject):
     """The function that is responsible for initializing the player and issuing basic parameters to his properties."""
-
     def __init__(self):
         self.x = 0
         self.y = 0
-        self.width = 30
-        self.height = 30
+        self.width = 15
+        self.height = 15
         self.speed = 15
+        self.image = pg.image.load("../res/sokoban.png")
 
     def move(self, direction):
         """A function that is responsible for moving the player around the playing field in a certain direction."""
@@ -44,7 +45,7 @@ class Player(GameObject):
 
     def draw(self, screen):
         """A function that is responsible for drawing the player's object on the playing field."""
-        pg.draw.rect(screen, RED, (self.x, self.y, self.width, self.height))
+        SCREEN.blit(self.image, (self.x, self.y))
 
 
 class Box(GameObject):
@@ -53,7 +54,7 @@ class Box(GameObject):
     def __init__(self, width=None, height=None):
         self.x = randint(255, 255)
         self.y = randint(285, 285)
-        self.image = pg.image.load("box.png")
+        self.image = pg.image.load(os.path.abspath("../res/box.png"))
         self.rect = self.image.get_rect()
         self.width = width
         self.height = height
@@ -77,12 +78,21 @@ class Map():
     """A constructor that initializes the game board as an object."""
 
     def __init__(self):
-        self.x = 50
-        self.y = 50
+        self.x = 0
+        self.y = 0
+        self.image = pg.image.load("../res/wall.png")
+        self.rect = self.image.get_rect()
+        self.walls = []
 
     def draw(self, screen):
         """A function that draws the main playing surface."""
-        pg.draw.rect(screen, GREY, (self.x, self.y, 700, 500))
+        pg.draw.rect(screen, (250, 240, 170), (self.x, self.y, 800, 600))
+
+
+    def walls_array(self):
+        #self.walls = [Map(), Map(), Map(40, 168), Map(40, 232), Map(40, 296), Map(40, 360)]
+        pass
+
 
 
 class Manager:
@@ -95,31 +105,31 @@ class Manager:
         self.targets = []
         self.player = Player()
 
-    def createTargets(self):
+    def create_targets(self):
         """A function that creates new objects for the playing field."""
         for i in range(self.countOfTargets):
             self.targets.append(Box(30, 30))
 
-    def showTargets(self, screen):
+    def show_targets(self, screen):
         """A function that represents boxes on the playing field."""
         for target in self.targets:
             target.draw(screen)
 
-    def collison(self, player):
+    def collision_catcher(self, player):
         """A function that controls the collision of the player's object and boxes on the playing field."""
         for target in self.targets:
             print("p", player.x, player.y)
             print("b", target.x, target.y)
             if target.x - player.width == player.x and player.y == target.y and target.x < WIDTH - target.width:
                 target.move(+player.speed, 0)
-            if target.x + player.width == player.x and player.y == target.y and target.x > 0:
+            elif target.x + player.width == player.x and player.y == target.y and target.x > 0:
                 target.move(-player.speed, 0)
-            if player.x == target.x and target.y + player.height == player.y and target.y > 0:
+            elif player.x == target.x and target.y + player.height == player.y and target.y > 0:
                 target.move(0, -player.speed)
-            if target.x == player.x and target.y - player.height == player.y and target.y < HEIGHT - target.height:
+            elif target.x == player.x and target.y - player.height == player.y and target.y < HEIGHT - target.height:
                 target.move(0, +player.speed)
 
-    def handleEvents(self, event):
+    def handler_events(self, event):
         """Simple event handler. Fires during certain actions on the map."""
         if event.type == pg.QUIT:
             return True
@@ -132,16 +142,9 @@ class Manager:
             self.player.move("up")
         if keys[pg.K_DOWN]:
             self.player.move("down")
-
         return False
 
 
-class Background(pg.sprite.Sprite):
-    def __init__(self, location):
-        pg.sprite.Sprite.__init__(self)
-        self.image = pg.image.load("bg.png")
-        self.rect = self.image.get_rect()
-        self.rect.left, self.rect.top = location
 
 
 
@@ -153,14 +156,15 @@ class GameWindow:
         pg.init()
         self.width = 800
         self.height = 600
-        self.title = "Sokoban"
+        self.title = "SOKOBAN"
         SCREEN.fill(WHITE)
         pg.display.set_caption(self.title)
         self.boxes = Box()
         self.manager = Manager()
         self.map = Map()
-        self.manager.createTargets()
-        self.bg = Background([0, 0])
+        self.map.walls_array()
+        self.manager.create_targets()
+
 
     def mainLoop(self):
         """The main loop of the game, which triggers all actions on the map."""
@@ -169,15 +173,13 @@ class GameWindow:
 
         while not finished:
             for event in pg.event.get():
-                if self.manager.handleEvents(event):
+                if self.manager.handler_events(event):
                     finished = True
 
-            SCREEN.fill([255, 255, 255])
-            SCREEN.blit(self.bg.image, self.bg.rect)
             self.map.draw(SCREEN)
             self.manager.player.draw(SCREEN)
-            self.manager.showTargets(SCREEN)
-            self.manager.collison(self.manager.player)
+            self.manager.show_targets(SCREEN)
+            self.manager.collision_catcher(self.manager.player)
             pg.display.flip()
             pg.display.update()
             clock.tick(FPS)

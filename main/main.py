@@ -1,19 +1,17 @@
 import pygame as pg
 from random import randint
 
-
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 FPS = 60
-WIDHT = 800
+WIDTH = 800
 HEIGHT = 600
-SCREEN = pg.display.set_mode((WIDHT, HEIGHT))
+SCREEN = pg.display.set_mode((WIDTH, HEIGHT))
 
 
 def getRandColor():
-    return (randint(0, 255), randint(0, 255), randint(0, 255))
-
+    return randint(0, 255), randint(0, 255), randint(0, 255)
 
 
 class GameObject:
@@ -21,15 +19,18 @@ class GameObject:
 
 
 class Player(GameObject):
+    """The function that is responsible for initializing the player and issuing basic parameters to his properties."""
+
     def __init__(self):
         self.x = 0
         self.y = 0
-        self.width = 25
-        self.height = 25
-        self.speed = 5
+        self.width = 15
+        self.height = 15
+        self.speed = 15
 
     def move(self, direction):
-        if direction == "right" and self.x < WIDHT - self.width:
+        """A function that is responsible for moving the player around the playing field in a certain direction."""
+        if direction == "right" and self.x < WIDTH - self.width:
             self.x += self.speed
         if direction == "left" and self.x > 0:
             self.x -= self.speed
@@ -39,17 +40,25 @@ class Player(GameObject):
             self.y += self.speed
 
     def draw(self, screen):
+        """A function that is responsible for drawing the player's object on the playing field."""
         pg.draw.rect(screen, RED, (self.x, self.y, self.width, self.height))
 
+
 class Box(GameObject):
-    def __init__(self, coord=None, color=None, rad=None):
-        self.coord = coord
-        self.rad = rad
-        self.color = color
+    def __init__(self, width=None, height=None):
+        self.x = randint(255, 255)
+        self.y = randint(270, 270)
+        self.width = width
+        self.height = height
+        self.speed = 15
+        self.color = getRandColor()
 
     def draw(self, screen):
-        pg.draw.circle(screen, self.color, self.coord, self.rad)
+        pg.draw.rect(screen, self.color, (self.x, self.y, self.width, self.height))
 
+    def move(self, x, y):
+        self.x += x
+        self.y += y
 
 
 class Map(GameObject):
@@ -63,19 +72,48 @@ class Map(GameObject):
         pg.draw.line(screen, BLACK, (50, 50), (500, 50))
         pg.draw.line(screen, BLACK, (500, 50), (500, 500))
 
+
 class Manager:
     def __init__(self):
-        self.countOfTargets = 5
+        self.countOfTargets = 1
         self.targets = []
+        self.player = Player()
 
     def createTargets(self):
         for i in range(self.countOfTargets):
-            self.targets.append(Box((randint(250, 400), randint(200, 350)), getRandColor(), 10))
+            self.targets.append(Box(15, 15))
 
     def showTargets(self, screen):
-        for i in self.targets:
-            i.draw(screen)
+        for target in self.targets:
+            target.draw(screen)
 
+    def collison(self, player):
+        for target in self.targets:
+            print("p", player.x, player.y)
+            print("b", target.x, target.y)
+            if target.x - player.width == player.x and player.y == target.y and target.x < WIDTH - target.width:
+                target.move(+player.speed, 0)
+            if target.x + player.width == player.x and player.y == target.y and target.x > 0:
+                target.move(-player.speed, 0)
+            if player.x == target.x and target.y + player.height == player.y and target.y > 0:
+                target.move(0, -player.speed)
+            if target.x == player.x and target.y - player.height == player.y and target.y < HEIGHT - target.height:
+                target.move(0, +player.speed)
+
+    def handleEvents(self, event):
+        if event.type == pg.QUIT:
+            return True
+        keys = pg.key.get_pressed()
+        if keys[pg.K_RIGHT]:
+            self.player.move("right")
+        if keys[pg.K_LEFT]:
+            self.player.move("left")
+        if keys[pg.K_UP]:
+            self.player.move("up")
+        if keys[pg.K_DOWN]:
+            self.player.move("down")
+
+        return False
 
 
 class GameWindow:
@@ -86,62 +124,36 @@ class GameWindow:
         self.title = "Sokoban"
         SCREEN.fill(WHITE)
         pg.display.set_caption(self.title)
-        self.player = Player()
-        self.map = Map()
         self.boxes = Box()
         self.manager = Manager()
+        self.map = Map()
         self.manager.createTargets()
 
-
-
     def mainLoop(self):
-
         finished = False
         clock = pg.time.Clock()
 
         while not finished:
             for event in pg.event.get():
-                if event.type == pg.QUIT:
+                if self.manager.handleEvents(event):
                     finished = True
 
-            keys = pg.key.get_pressed()
-            if keys[pg.K_RIGHT]:
-                self.player.move("right")
-            if keys[pg.K_LEFT]:
-                self.player.move("left")
-            if keys[pg.K_UP]:
-                self.player.move("up")
-            if keys[pg.K_DOWN]:
-                self.player.move("down")
-
-
             SCREEN.fill(WHITE)
-
-            self.player.draw(SCREEN)
-            #self.map.draw(screen)
-            #self.boxes.draw(screen)
+            self.manager.player.draw(SCREEN)
             self.manager.showTargets(SCREEN)
-
-
-
+            self.map.draw(SCREEN)
+            self.manager.collison(self.manager.player)
             pg.display.flip()
             pg.display.update()
             clock.tick(FPS)
 
 
-
-
 def main():
-
     window = GameWindow()
     window.mainLoop()
 
     print('Game over!')
 
 
-
-
 if __name__ == "__main__":
     main()
-
-

@@ -11,6 +11,7 @@ SCREEN = pg.display.set_mode((WIDTH, HEIGHT))
 
 
 def getRandColor():
+    """A function that returns a random number of a random color in RGB."""
     return randint(0, 255), randint(0, 255), randint(0, 255)
 
 
@@ -20,7 +21,6 @@ class GameObject:
 
 class Player(GameObject):
     """The function that is responsible for initializing the player and issuing basic parameters to his properties."""
-
     def __init__(self):
         self.x = 0
         self.y = 0
@@ -45,6 +45,7 @@ class Player(GameObject):
 
 
 class Box(GameObject):
+    """Constructor for the Box class that initializes a new box on the map."""
     def __init__(self, width=None, height=None):
         self.x = randint(255, 255)
         self.y = randint(270, 270)
@@ -54,9 +55,11 @@ class Box(GameObject):
         self.color = getRandColor()
 
     def draw(self, screen):
+        """A function that draws a new box on the playing field."""
         pg.draw.rect(screen, self.color, (self.x, self.y, self.width, self.height))
 
     def move(self, x, y):
+        """A function that is responsible for displacing an object along the x and y axes."""
         self.x += x
         self.y += y
 

@@ -48,7 +48,7 @@ class Box(GameObject):
     """Constructor for the Box class that initializes a new box on the map."""
     def __init__(self, width=None, height=None):
         self.x = randint(255, 255)
-        self.y = randint(270, 270)
+        self.y = randint(285, 285)
         self.width = width
         self.height = height
         self.speed = 15
@@ -65,11 +65,13 @@ class Box(GameObject):
 
 
 class Map(GameObject):
+    """A constructor that initializes the game board as an object."""
     def __init__(self):
         self.x = randint(300, 400)
         self.y = randint(300, 400)
 
     def draw(self, screen):
+        """A function that draws the main playing surface."""
         pg.draw.line(screen, BLACK, (50, 500), (440, 500))
         pg.draw.line(screen, BLACK, (50, 50), (50, 500))
         pg.draw.line(screen, BLACK, (50, 50), (500, 50))
@@ -77,20 +79,26 @@ class Map(GameObject):
 
 
 class Manager:
+    """The Manager class that manages all the events and classes on the playing field.
+        It also handles collisions of objects and is an event handler.
+        Stores the main objects on the map."""
     def __init__(self):
         self.countOfTargets = 1
         self.targets = []
         self.player = Player()
 
     def createTargets(self):
+        """A function that creates new objects for the playing field."""
         for i in range(self.countOfTargets):
             self.targets.append(Box(15, 15))
 
     def showTargets(self, screen):
+        """A function that represents boxes on the playing field."""
         for target in self.targets:
             target.draw(screen)
 
     def collison(self, player):
+        """A function that controls the collision of the player's object and boxes on the playing field."""
         for target in self.targets:
             print("p", player.x, player.y)
             print("b", target.x, target.y)
@@ -104,6 +112,7 @@ class Manager:
                 target.move(0, +player.speed)
 
     def handleEvents(self, event):
+        """Simple event handler. Fires during certain actions on the map."""
         if event.type == pg.QUIT:
             return True
         keys = pg.key.get_pressed()
@@ -120,7 +129,9 @@ class Manager:
 
 
 class GameWindow:
+    """The game window class, defines all the properties and methods of the main game window."""
     def __init__(self):
+        """The constructor that initializes the game window sets its basic properties, objects and fields."""
         pg.init()
         self.width = 800
         self.height = 600
@@ -133,6 +144,7 @@ class GameWindow:
         self.manager.createTargets()
 
     def mainLoop(self):
+        """The main loop of the game, which triggers all actions on the map."""
         finished = False
         clock = pg.time.Clock()
 

@@ -53,6 +53,8 @@ class Box(GameObject):
     def __init__(self, width=None, height=None):
         self.x = randint(255, 255)
         self.y = randint(285, 285)
+        self.image = pg.image.load("box.png")
+        self.rect = self.image.get_rect()
         self.width = width
         self.height = height
         self.speed = 15
@@ -61,6 +63,8 @@ class Box(GameObject):
     def draw(self, screen):
         """A function that draws a new box on the playing field."""
         pg.draw.rect(screen, self.color, (self.x, self.y, self.width, self.height))
+        SCREEN.blit(self.image, [self.x, self.y])
+
 
     def move(self, x, y):
         """A function that is responsible for displacing an object along the x and y axes."""
@@ -73,12 +77,12 @@ class Map():
     """A constructor that initializes the game board as an object."""
 
     def __init__(self):
-        self.x = 100
-        self.y = 100
+        self.x = 50
+        self.y = 50
 
     def draw(self, screen):
         """A function that draws the main playing surface."""
-        pg.draw.rect(screen, GREY, (self.x, self.y, 600, 400))
+        pg.draw.rect(screen, GREY, (self.x, self.y, 700, 500))
 
 
 class Manager:
@@ -139,12 +143,6 @@ class Background(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.left, self.rect.top = location
 
-class Boxes(pg.sprite.Sprite):
-    def __init__(self, image_file, location):
-        pg.sprite.Sprite.__init__(self)
-        self.image = pg.image.load("box.png")
-        self.rect = self.image.get_rect()
-        self.rect.left, self.rect.top = location
 
 
 class GameWindow:
@@ -163,7 +161,6 @@ class GameWindow:
         self.map = Map()
         self.manager.createTargets()
         self.bg = Background([0, 0])
-        self.boxes = Boxes('background_image.png', [50, 50])
 
     def mainLoop(self):
         """The main loop of the game, which triggers all actions on the map."""
@@ -177,7 +174,6 @@ class GameWindow:
 
             SCREEN.fill([255, 255, 255])
             SCREEN.blit(self.bg.image, self.bg.rect)
-            SCREEN.blit(self.boxes.image, self.boxes.rect)
             self.map.draw(SCREEN)
             self.manager.player.draw(SCREEN)
             self.manager.showTargets(SCREEN)

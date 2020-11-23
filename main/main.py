@@ -1,9 +1,11 @@
+import os
 import pygame as pg
 from random import randint
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
+GREY = (211, 211, 211)
 FPS = 60
 WIDTH = 800
 HEIGHT = 600
@@ -21,11 +23,12 @@ class GameObject:
 
 class Player(GameObject):
     """The function that is responsible for initializing the player and issuing basic parameters to his properties."""
+
     def __init__(self):
         self.x = 0
         self.y = 0
-        self.width = 15
-        self.height = 15
+        self.width = 30
+        self.height = 30
         self.speed = 15
 
     def move(self, direction):
@@ -46,6 +49,7 @@ class Player(GameObject):
 
 class Box(GameObject):
     """Constructor for the Box class that initializes a new box on the map."""
+
     def __init__(self, width=None, height=None):
         self.x = randint(255, 255)
         self.y = randint(285, 285)
@@ -64,24 +68,24 @@ class Box(GameObject):
         self.y += y
 
 
-class Map(GameObject):
+
+class Map():
     """A constructor that initializes the game board as an object."""
+
     def __init__(self):
-        self.x = randint(300, 400)
-        self.y = randint(300, 400)
+        self.x = 100
+        self.y = 100
 
     def draw(self, screen):
         """A function that draws the main playing surface."""
-        pg.draw.line(screen, BLACK, (50, 500), (440, 500))
-        pg.draw.line(screen, BLACK, (50, 50), (50, 500))
-        pg.draw.line(screen, BLACK, (50, 50), (500, 50))
-        pg.draw.line(screen, BLACK, (500, 50), (500, 500))
+        pg.draw.rect(screen, GREY, (self.x, self.y, 600, 400))
 
 
 class Manager:
     """The Manager class that manages all the events and classes on the playing field.
         It also handles collisions of objects and is an event handler.
         Stores the main objects on the map."""
+
     def __init__(self):
         self.countOfTargets = 1
         self.targets = []
@@ -90,7 +94,7 @@ class Manager:
     def createTargets(self):
         """A function that creates new objects for the playing field."""
         for i in range(self.countOfTargets):
-            self.targets.append(Box(15, 15))
+            self.targets.append(Box(30, 30))
 
     def showTargets(self, screen):
         """A function that represents boxes on the playing field."""
@@ -128,8 +132,24 @@ class Manager:
         return False
 
 
+class Background(pg.sprite.Sprite):
+    def __init__(self, location):
+        pg.sprite.Sprite.__init__(self)
+        self.image = pg.image.load("bg.png")
+        self.rect = self.image.get_rect()
+        self.rect.left, self.rect.top = location
+
+class Boxes(pg.sprite.Sprite):
+    def __init__(self, image_file, location):
+        pg.sprite.Sprite.__init__(self)
+        self.image = pg.image.load("box.png")
+        self.rect = self.image.get_rect()
+        self.rect.left, self.rect.top = location
+
+
 class GameWindow:
     """The game window class, defines all the properties and methods of the main game window."""
+
     def __init__(self):
         """The constructor that initializes the game window sets its basic properties, objects and fields."""
         pg.init()
@@ -142,6 +162,8 @@ class GameWindow:
         self.manager = Manager()
         self.map = Map()
         self.manager.createTargets()
+        self.bg = Background([0, 0])
+        self.boxes = Boxes('background_image.png', [50, 50])
 
     def mainLoop(self):
         """The main loop of the game, which triggers all actions on the map."""
@@ -153,10 +175,12 @@ class GameWindow:
                 if self.manager.handleEvents(event):
                     finished = True
 
-            SCREEN.fill(WHITE)
+            SCREEN.fill([255, 255, 255])
+            SCREEN.blit(self.bg.image, self.bg.rect)
+            SCREEN.blit(self.boxes.image, self.boxes.rect)
+            self.map.draw(SCREEN)
             self.manager.player.draw(SCREEN)
             self.manager.showTargets(SCREEN)
-            self.map.draw(SCREEN)
             self.manager.collison(self.manager.player)
             pg.display.flip()
             pg.display.update()

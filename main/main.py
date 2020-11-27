@@ -37,9 +37,9 @@ class Player(GameObject):
     def __init__(self):
         self.x = 0
         self.y = 0
-        self.width = 15
-        self.height = 15
-        self.speed = 15
+        self.width = 10
+        self.height = 10
+        self.speed = 10
         self.image = pg.image.load("../res/sokoban.png")
 
     def move(self, direction):
@@ -67,14 +67,14 @@ class Box(GameObject):
     Constructor for the Box class that initializes a new box on the map.
     """
 
-    def __init__(self, width=None, height=None):
-        self.x = randint(255, 255)
-        self.y = randint(270, 270)
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
         self.image = pg.image.load(os.path.abspath("../res/box.png"))
         self.rect = self.image.get_rect()
-        self.width = width
-        self.height = height
-        self.speed = 15
+        self.width = 10
+        self.height = 10
+        self.speed = 10
         self.color = getRandColor()
 
     def draw(self):
@@ -98,8 +98,8 @@ class Wall:
         """
         self.x = x
         self.y = y
-        self.width = 15
-        self.height = 15
+        self.width = 10
+        self.height = 10
         self.image = pg.image.load(os.path.abspath("../res/wall.png"))
         self.rect = self.image.get_rect()
 
@@ -112,15 +112,25 @@ class Map(Wall):
         self.x = x
         self.y = y
         self.walls = []
+        self.boxes = []
         self.level = ('''
-                        #########\n
-                        #       #\n
-                        #       #\n
-                        #         #############\n
-                         ####                 #\n
-                            #####         ####\n
-                                ############\n
-                     ''')
+                    #####################################\n
+                    #                                   #\n
+                    #                                   #\n
+                    #                                   #\n
+                    #             $                     #\n
+                    #                                   #\n
+                    #                                   #\n
+                    #      $  $           $             #\n
+                    #                                   #\n
+                    #                                   #\n
+                    #                                   #\n
+                    #                                   #\n
+                    #             $                     #\n
+                    #                                   #\n
+                    #                                   #\n
+                    #####################################\n     
+                    ''')
 
     def draw_background(self):
         """
@@ -134,22 +144,30 @@ class Map(Wall):
         """
         for i in self.level:
             if i == "\n":
-                self.y += 12
+                self.y += 10
                 self.x = 0
 
             if i == "#":
                 self.walls.append(Wall(self.x, self.y))
-                self.x += 12
+                self.x += 10
 
             if i == " ":
-                self.x += 12
+                self.x += 10
 
-    def draw_walls(self):
+            if i == "$":
+                self.boxes.append(Box(self.x, self.y))
+                self.x += 10
+
+    def draw_map(self):
         """
         A function that draws walls on the screen.
         """
         for wall in self.walls:
             SCREEN.blit(wall.image, (wall.x, wall.y))
+
+        for boxes in self.boxes:
+            SCREEN.blit(boxes.image, (boxes.x, boxes.y))
+
 
 
 class Manager:
@@ -160,18 +178,10 @@ class Manager:
     """
 
     def __init__(self, main_map):
-        self.countOfTargets = 1
-        self.targets = []
         self.player = Player()
         self.map = main_map
         self.map.create_level()
 
-    def create_targets(self):
-        """
-        A function that creates new objects for the playing field.
-        """
-        for i in range(self.countOfTargets):
-            self.targets.append(Box(30, 30))
 
     def show_targets(self):
         """
@@ -197,11 +207,11 @@ class Manager:
         if keys[pg.K_DOWN]:
             self.player.move("down")
 
-    def collision_catcher(self, player):
+    def collision_catcher(self, player, targets):
         """
         A function that controls the collision of the player's object and boxes on the playing field.
         """
-        for target in self.targets:
+        for target in targets:
             print("p", player.x, player.y)
             print("b", target.x, target.y)
             if target.x - player.width == player.x and player.y == target.y and target.x < WIDTH - target.width:
@@ -231,11 +241,9 @@ class GameWindow:
         pg.init()
         self.width = 800
         self.height = 600
-        self.title = "SOKOBAN"
-        self.boxes = Box()
+        self.title = "Sokoban"
         self.map = Map(0, 0)
         self.manager = Manager(self.map)
-        self.manager.create_targets()
         SCREEN.fill(WHITE)
         pg.display.set_caption(self.title)
 
@@ -253,10 +261,9 @@ class GameWindow:
                     finished = True
 
             self.manager.map.draw_background()
-            self.manager.map.draw_walls()
+            self.manager.map.draw_map()
             self.manager.player.draw()
-            self.manager.show_targets()
-            self.manager.collision_catcher(self.manager.player)
+            self.manager.collision_catcher(self.manager.player, self.map.boxes)
             pg.display.flip()
             pg.display.update()
             clock.tick(FPS)

@@ -91,7 +91,7 @@ class Box(GameObject):
         self.y += y
 
 
-class Map:
+class Wall:
     def __init__(self, x, y):
         """
         A constructor that initializes the game board.
@@ -102,15 +102,25 @@ class Map:
         self.height = 15
         self.image = pg.image.load(os.path.abspath("../res/wall.png"))
         self.rect = self.image.get_rect()
+
+
+class Map(Wall):
+    def __init__(self, x, y):
+        """
+        A constructor that initializes the game board.
+        """
+        self.x = x
+        self.y = y
         self.walls = []
-        self.level = '''#########\n
+        self.level = ('''
+                        #########\n
                         #       #\n
                         #       #\n
                         #         #############\n
                          ####                 #\n
                             #####         ####\n
                                 ############\n
-                     '''
+                     ''')
 
     def draw_background(self):
         """
@@ -118,29 +128,28 @@ class Map:
         """
         pg.draw.rect(SCREEN, YELLOW, (0, 0, 800, 600))
 
-    def init_walls(self):
+    def create_level(self):
         """
         A function that draws the boundaries of the game level.
         """
         for i in self.level:
             if i == "\n":
+                self.y += 12
                 self.x = 0
-                self.y += 10
 
             if i == "#":
-                self.walls.append(Map(self.x, self.y))
-                self.x += 10
+                self.walls.append(Wall(self.x, self.y))
+                self.x += 12
 
             if i == " ":
-                self.x += 10
+                self.x += 12
 
     def draw_walls(self):
         """
         A function that draws walls on the screen.
         """
         for wall in self.walls:
-            SCREEN.blit(self.image, (wall.x, wall.y))
-
+            SCREEN.blit(wall.image, (wall.x, wall.y))
 
 
 class Manager:
@@ -155,7 +164,7 @@ class Manager:
         self.targets = []
         self.player = Player()
         self.map = main_map
-        self.map.init_walls()
+        self.map.create_level()
 
     def create_targets(self):
         """
@@ -206,6 +215,7 @@ class Manager:
 
     def collision_with_walls(self, walls, player):
         pass
+
 
 class GameWindow:
     """

@@ -183,17 +183,9 @@ class Manager:
         self.map.create_level()
 
 
-    def show_targets(self):
-        """
-        A function that represents boxes on the playing field.
-        """
-        for target in self.targets:
-            target.draw()
-
     def handler_events(self, event):
         """
         Simple event handler. Fires during certain actions on the map.
-
         """
         if event.type == pg.QUIT:
             return True

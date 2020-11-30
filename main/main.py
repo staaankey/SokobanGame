@@ -21,7 +21,14 @@ def getRandColor():
 
 
 class GameObject(pg.sprite.Sprite):
+    """
+
+    """
+
     def __init__(self, img):
+        """
+        :param img:
+        """
         pg.sprite.Sprite.__init__(self)
         self.image = pg.image.load(img)
         self.x = 0
@@ -34,19 +41,21 @@ class Player(GameObject):
     The function that is responsible for initializing the player and issuing basic parameters to his properties.
     """
 
-    def __init__(self):
-        self.x = 0
-        self.y = 0
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.image = pg.image.load(os.path.abspath("../res/sokoban.png"))
         self.width = 10
         self.height = 10
         self.speed = 10
-        self.image = pg.image.load("../res/sokoban.png")
 
     def move(self, direction):
         """
         A function that is responsible for moving the player around the playing field in a certain direction.
+        :param direction:
+        :return:
         """
-        if direction == "right" and self.x < WIDTH - self.width:
+        if direction == "right" and self.x < WIDTH - self.width:  # TODO: Fix me
             self.x += self.speed
         if direction == "left" and self.x > 0:
             self.x -= self.speed
@@ -68,6 +77,11 @@ class Box(GameObject):
     """
 
     def __init__(self, x, y):
+        """
+
+        :param x:
+        :param y:
+        """
         self.x = x
         self.y = y
         self.image = pg.image.load(os.path.abspath("../res/box.png"))
@@ -86,20 +100,24 @@ class Box(GameObject):
     def move(self, x, y):
         """
         A function that is responsible for displacing an object along the x and y axes.
+        :param x:
+        :param y:
+        :return:
         """
         self.x += x
         self.y += y
 
 
-class Wall:
+class Wall(GameObject):
     def __init__(self, x, y):
         """
         A constructor that initializes the game board.
+        :param x:
+        :param y:
         """
         self.x = x
         self.y = y
-        self.width = 10
-        self.height = 10
+        self.width = 100
         self.image = pg.image.load(os.path.abspath("../res/wall.png"))
         self.rect = self.image.get_rect()
 
@@ -108,19 +126,22 @@ class Map(Wall):
     def __init__(self, x, y):
         """
         A constructor that initializes the game board.
+        :param x:
+        :param y:
         """
         self.x = x
         self.y = y
         self.walls = []
         self.boxes = []
+        self.player = None
         self.level = ('''
-                    #####################################\n
+                    # # # # # # # # # # # # # # # # # # #\n 
                     #                                   #\n
                     #                                   #\n
                     #                                   #\n
                     #             $                     #\n
                     #                                   #\n
-                    #                                   #\n
+                    #                @                  #\n
                     #      $  $           $             #\n
                     #                                   #\n
                     #                                   #\n
@@ -129,8 +150,8 @@ class Map(Wall):
                     #             $                     #\n
                     #                                   #\n
                     #                                   #\n
-                    #####################################\n     
-                    ''')
+                    # # # # # # # # # # # # # # # # # # #\n     
+                    ''')  # TODO: You need to draw a normal map
 
     def draw_background(self):
         """
@@ -142,19 +163,23 @@ class Map(Wall):
         """
         A function that draws the boundaries of the game level.
         """
-        for i in self.level:
-            if i == "\n":
+        for type in self.level:
+            if type == "\n":
                 self.y += 10
                 self.x = 0
 
-            if i == "#":
+            elif type == "#":
                 self.walls.append(Wall(self.x, self.y))
                 self.x += 10
 
-            if i == " ":
+            elif type == "@":
+                self.player = Player(self.x, self.y)
                 self.x += 10
 
-            if i == "$":
+            elif type == " ":
+                self.x += 10
+
+            elif type == "$":
                 self.boxes.append(Box(self.x, self.y))
                 self.x += 10
 
@@ -169,7 +194,6 @@ class Map(Wall):
             SCREEN.blit(boxes.image, (boxes.x, boxes.y))
 
 
-
 class Manager:
     """
     The Manager class that manages all the events and classes on the playing field.
@@ -177,35 +201,58 @@ class Manager:
     Stores the main objects on the map.
     """
 
-    def __init__(self, main_map):
-        self.player = Player()
+    def __init__(self, main_map, walls):
         self.map = main_map
         self.map.create_level()
-
+        self.player = self.map.player
+        self.walls = walls
 
     def handler_events(self, event):
         """
         Simple event handler. Fires during certain actions on the map.
+        :param event:
+        :return:
         """
         if event.type == pg.QUIT:
             return True
         keys = pg.key.get_pressed()
-        if keys[pg.K_RIGHT]:
+        if keys[pg.K_RIGHT] and Manager.collision_with_walls(self.walls, self.player, "right"):
             self.player.move("right")
-        if keys[pg.K_LEFT]:
+        if keys[pg.K_LEFT] and Manager.collision_with_walls(self.walls, self.player, "left"):
             self.player.move("left")
-        if keys[pg.K_UP]:
+        if keys[pg.K_UP] and Manager.collision_with_walls(self.walls, self.player, "up"):
             self.player.move("up")
-        if keys[pg.K_DOWN]:
+        if keys[pg.K_DOWN] and Manager.collision_with_walls(self.walls, self.player, "down"):
             self.player.move("down")
 
-    def collision_catcher(self, player, targets):
+    @staticmethod
+    def collision_with_walls(walls, player, key):
+        """
+        A function that controls the collision of the player, blocks and walls.
+        :param walls:
+        :param player:
+        :param key:
+        :return:
+        """
+        for wall in walls:
+            if (wall.y > player.y) and (wall.x - player.width * 2 > player.x) and (key == "right"):
+                return True
+            elif (wall.y < player.y) and (wall.x + player.width * 2 < player.x) and (key == "left"):
+                return True
+            elif (wall.y + player.height * 2 < player.y) and (key == "up"):
+                return True
+            elif (wall.y - player.height * 2 > player.y) and (key == "down"):
+                return True
+
+    @staticmethod
+    def collision_catcher(player, targets):
         """
         A function that controls the collision of the player's object and boxes on the playing field.
+        :param player:
+        :param targets:
+        :return:
         """
         for target in targets:
-            print("p", player.x, player.y)
-            print("b", target.x, target.y)
             if target.x - player.width == player.x and player.y == target.y and target.x < WIDTH - target.width:
                 target.move(+player.speed, 0)
             elif target.x + player.width == player.x and player.y == target.y and target.x > 0:
@@ -215,34 +262,28 @@ class Manager:
             elif target.x == player.x and target.y - player.height == player.y and target.y < HEIGHT - target.height:
                 target.move(0, +player.speed)
 
-    def collision_with_walls(self, walls, player):
-        pass
-
 
 class GameWindow:
     """
     The game window class, defines all the properties and methods of the main game window.
-
     """
 
     def __init__(self):
         """
         The constructor that initializes the game window sets its basic properties, objects and fields.
-
         """
         pg.init()
         self.width = 800
         self.height = 600
         self.title = "Sokoban"
         self.map = Map(0, 0)
-        self.manager = Manager(self.map)
+        self.manager = Manager(self.map, self.map.walls)
         SCREEN.fill(WHITE)
         pg.display.set_caption(self.title)
 
     def mainLoop(self):
         """
         The main loop of the game, which triggers all actions on the map.
-
         """
         finished = False
         clock = pg.time.Clock()

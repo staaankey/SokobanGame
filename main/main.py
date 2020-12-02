@@ -7,7 +7,7 @@ BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREY = (211, 211, 211)
 YELLOW = (250, 240, 170)
-FPS = 60
+FPS = 120
 WIDTH = 800
 HEIGHT = 600
 SCREEN = pg.display.set_mode((WIDTH, HEIGHT))
@@ -29,7 +29,7 @@ class GameObject(pg.sprite.Sprite):
         """
         :param img:
         """
-        pg.sprite.Sprite.__init__(self)
+        super().__init__(self)
         self.image = pg.image.load(img)
         self.x = 0
         self.y = 0
@@ -122,6 +122,17 @@ class Wall(GameObject):
         self.rect = self.image.get_rect()
 
 
+class Spot(GameObject):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.image = pg.image.load(os.path.abspath("../res/baggage.png"))
+        self.rect = self.image.get_rect()
+
+    def draw(self):
+        SCREEN.blit((self.image, [self.x, self.y]))
+
+
 class Map(Wall):
     def __init__(self, x, y):
         """
@@ -133,23 +144,24 @@ class Map(Wall):
         self.y = y
         self.walls = []
         self.boxes = []
+        self.spots = []
         self.player = None
         self.level = ('''
                     # # # # # # # # # # # # # # # # # # #\n 
                     #                                   #\n
                     #                                   #\n
                     #                                   #\n
+                    #     $                             #\n
                     #             $                     #\n
+                    #                @    $             #\n
                     #                                   #\n
-                    #                @                  #\n
-                    #      $  $           $             #\n
-                    #                                   #\n
-                    #                                   #\n
+                    #         $                         #\n
                     #                                   #\n
                     #                                   #\n
-                    #             $                     #\n
                     #                                   #\n
                     #                                   #\n
+                    #                               o o #\n
+                    #                               o o #\n
                     # # # # # # # # # # # # # # # # # # #\n     
                     ''')  # TODO: You need to draw a normal map
 
@@ -163,24 +175,28 @@ class Map(Wall):
         """
         A function that draws the boundaries of the game level.
         """
-        for type in self.level:
-            if type == "\n":
+        for char in self.level:
+            if char == "\n":
                 self.y += 10
                 self.x = 0
 
-            elif type == "#":
+            elif char == "#":
                 self.walls.append(Wall(self.x, self.y))
                 self.x += 10
 
-            elif type == "@":
+            elif char == "@":
                 self.player = Player(self.x, self.y)
                 self.x += 10
 
-            elif type == " ":
+            elif char == " ":
                 self.x += 10
 
-            elif type == "$":
+            elif char == "$":
                 self.boxes.append(Box(self.x, self.y))
+                self.x += 10
+
+            elif char == "o":
+                self.spots.append(Spot(self.x, self.y))
                 self.x += 10
 
     def draw_map(self):
@@ -190,8 +206,12 @@ class Map(Wall):
         for wall in self.walls:
             SCREEN.blit(wall.image, (wall.x, wall.y))
 
-        for boxes in self.boxes:
-            SCREEN.blit(boxes.image, (boxes.x, boxes.y))
+        for box in self.boxes:
+            SCREEN.blit(box.image, (box.x, box.y))
+
+
+        for spot in self.spots:
+            SCREEN.blit(spot.image, (spot.x, spot.y))
 
 
 class Manager:
@@ -201,11 +221,13 @@ class Manager:
     Stores the main objects on the map.
     """
 
-    def __init__(self, main_map, walls):
+    def __init__(self, main_map, walls, spots, boxes):
         self.map = main_map
         self.map.create_level()
         self.player = self.map.player
         self.walls = walls
+        self.spots = spots
+        self.boxes = boxes
 
     def handler_events(self, event):
         """
@@ -262,6 +284,20 @@ class Manager:
             elif target.x == player.x and target.y - player.height == player.y and target.y < HEIGHT - target.height:
                 target.move(0, +player.speed)
 
+    @staticmethod
+    def collision_with_spots(boxes, spots):
+        count = 0
+        for box in boxes:
+            for spot in spots:
+                if box.x == spot.x and box.y == spot.y:
+                    count += 1
+                    if count == len(spots):
+                        exit()
+                        print("Level completed successfully!")
+                    else:
+                        continue
+
+
 
 class GameWindow:
     """
@@ -277,7 +313,7 @@ class GameWindow:
         self.height = 600
         self.title = "Sokoban"
         self.map = Map(0, 0)
-        self.manager = Manager(self.map, self.map.walls)
+        self.manager = Manager(self.map, self.map.walls, self.map.spots, self.map.boxes)
         SCREEN.fill(WHITE)
         pg.display.set_caption(self.title)
 
@@ -297,6 +333,7 @@ class GameWindow:
             self.manager.map.draw_map()
             self.manager.player.draw()
             self.manager.collision_catcher(self.manager.player, self.map.boxes)
+            self.manager.collision_with_spots(self.map.boxes, self.manager.spots)
             pg.display.flip()
             pg.display.update()
             clock.tick(FPS)

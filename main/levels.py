@@ -42,13 +42,14 @@ class Player(GameObject):
     """
 
     def __init__(self, x, y):
+        self.sprite = pg.sprite.Sprite()
         self.x = x
         self.y = y
-        self.image = pg.image.load(os.path.abspath("../res/sokoban.png"))
+        self.image = pg.Surface((75, 75))
         self.rect = self.image.get_rect()
-        self.width = 20
-        self.height = 20
-        self.speed = 20
+        self.width = 10
+        self.height = 10
+        self.speed = 10
 
     def move(self, direction):
         """
@@ -60,7 +61,7 @@ class Player(GameObject):
             self.x += self.speed
         if direction == "left" and self.x > 0:
             self.x -= self.speed
-        if direction == "up" and self.y > 0 + self.height:
+        if direction == "up" and self.y > 0:
             self.y -= self.speed
         if direction == "down" and self.y < HEIGHT - self.height:
             self.y += self.speed
@@ -85,11 +86,11 @@ class Box(GameObject):
         """
         self.x = x
         self.y = y
-        # self.image = pg.image.load(os.path.abspath("../res/box.png"))
-        # self.rect = self.image.get_rect()
-        self.width = 20
-        self.height = 20
-        self.speed = 20
+        #self.image = pg.image.load(os.path.abspath("../res/box.png"))
+        #self.rect = self.image.get_rect()
+        self.width = 10
+        self.height = 10
+        self.speed = 10
         self.color = getRandColor()
 
     def draw(self):
@@ -118,8 +119,7 @@ class Wall(GameObject):
         """
         self.x = x
         self.y = y
-        self.width = 20
-        self.height = 20
+        self.width = 100
         self.image = pg.image.load(os.path.abspath("../res/wall.png"))
         self.rect = self.image.get_rect()
 
@@ -131,8 +131,6 @@ class Spot(GameObject):
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.width = 20
-        self.height = 20
         self.image = pg.image.load(os.path.abspath("../res/baggage.png"))
         self.rect = self.image.get_rect()
 
@@ -154,21 +152,16 @@ class Map(Wall):
         self.spots = []
         self.player = None
         self.level = ("""
-        ######\n
-        #    #\n   
-        #    #\n    
-        #$ $ #\n  
-     ####    ###\n   
-     #   $   $ #\n
-     #  # #### #\n     
-  ####  # #### #     ######\n            
-  #     # #### #######  oo#\n
-  # $    $              oo#\n
-  ####### ##### #@####  oo#\n 
-        #       ###  ######\n
-        #       #\n
-        #########\n      
-        """)
+                            # # # # # # # # #\n
+                            #               #\n
+                            #   #     #     #\n
+                            #       $       #\n
+                            #      @        #\n
+                            #               #\n
+                            #             o #\n
+                            #             o #\n
+                            # # # # # # # # #\n
+                    """)
 
     def draw_background(self):
         """
@@ -187,35 +180,35 @@ class Map(Wall):
 
             elif char == "#":
                 self.walls.append(Wall(self.x, self.y))
-                self.x += 20
+                self.x += 10
 
             elif char == "@":
                 self.player = Player(self.x, self.y)
-                self.x += 20
+                self.x += 10
 
             elif char == " ":
-                self.x += 20
+                self.x += 10
 
             elif char == "$":
                 self.boxes.append(Box(self.x, self.y))
-                self.x += 20
+                self.x += 10
 
             elif char == "o":
                 self.spots.append(Spot(self.x, self.y))
-                self.x += 20
+                self.x += 10
 
     def draw_map(self):
         """
         A function that draws walls on the screen.
         """
         for wall in self.walls:
-            pg.draw.rect(SCREEN, BLACK, (wall.x, wall.y, wall.width, wall.height))
+            SCREEN.blit(wall.image, (wall.x, wall.y))
 
         for box in self.boxes:
             pg.draw.rect(SCREEN, GREY, (box.x, box.y, box.width, box.height))
 
         for spot in self.spots:
-            pg.draw.rect(SCREEN, WHITE, (spot.x, spot.y, spot.width, spot.height))
+            SCREEN.blit(spot.image, (spot.x, spot.y))
 
 
 class Manager:
@@ -229,10 +222,9 @@ class Manager:
         self.map = main_map
         self.map.create_level()
         self.player = self.map.player
-        self.walls = self.map.walls
+        self.walls = walls
         self.spots = spots
         self.boxes = boxes
-        self.move_ability = False
 
     def handler_events(self, event):
         """
@@ -243,62 +235,47 @@ class Manager:
         if event.type == pg.QUIT:
             return True
         keys = pg.key.get_pressed()
-        if keys[pg.K_RIGHT]:
-            self.collision_catcher(self.player, self.boxes, "right")
-            self.collision_with_walls(self.walls, self.player, "right")
+        if keys[pg.K_RIGHT] and Manager.collision_with_walls(self.walls, self.player, "right"):
             self.player.move("right")
-        if keys[pg.K_LEFT]:
-            self.collision_catcher(self.player, self.boxes, "left")
-            self.collision_with_walls(self.walls, self.player, "left")
+        if keys[pg.K_LEFT] and Manager.collision_with_walls(self.walls, self.player, "left"):
             self.player.move("left")
-        if keys[pg.K_UP]:
-            self.collision_catcher(self.player, self.boxes, "up")
-            self.collision_with_walls(self.walls, self.player, "up")
+        if keys[pg.K_UP] and Manager.collision_with_walls(self.walls, self.player, "up"):
             self.player.move("up")
-        if keys[pg.K_DOWN]:
-            self.collision_catcher(self.player, self.boxes, "down")
-            self.collision_with_walls(self.walls, self.player, "down")
+        if keys[pg.K_DOWN] and Manager.collision_with_walls(self.walls, self.player, "down"):
             self.player.move("down")
 
-    def collision_with_walls(self, walls, player, direction):
+    @staticmethod
+    def collision_with_walls(walls, player, key):
         """
         A function that controls the collision of the player, blocks and walls.
-        :param direction:
         :param walls:
         :param player:
+        :param key:
         :return:
         """
-        for wall in walls:
-            if wall.x - wall.width == player.x and player.y == wall.y and direction == "right":
-                self.player.move("left")
-            elif wall.x + wall.width == player.x and player.y == wall.y and direction == "left":
-                self.player.move("right")
+        return True
 
-            elif player.x == wall.x and wall.y + wall.height == player.y and wall.y > 0 and direction == "up":
-                self.player.move("down")
 
-            elif wall.x == player.x and wall.y - wall.height == player.y and direction == "down":
-                self.player.move("up")
-
-    def collision_catcher(self, player, targets, direction):
+    @staticmethod
+    def collision_catcher(player, targets):
         """
         A function that controls the collision of the player's object and boxes on the playing field.
-        :param direction:
         :param player:
         :param targets:
         :return:
         """
         for target in targets:
-            if target.x - target.width == player.x and player.y == target.y and direction == "right":
+            if target.x + target.width == player.x + player.width and player.y == target.y and target.x < WIDTH - target.width:
                 target.move(+player.speed, 0)
-            elif target.x + target.width == player.x and player.y == target.y and direction == "left":
+            elif target.x + target.width == player.x + player.width and player.y == target.y and target.x > 0:
                 target.move(-player.speed, 0)
-            elif player.x == target.x and target.y + target.height == player.y and direction == "up":
+            elif player.x == target.x and target.y + target.height == player.y and target.y > 0:
                 target.move(0, -player.speed)
-            elif target.x == player.x and target.y - target.height == player.y and direction == "down":
+            elif target.x == player.x and target.y - target.height == player.y and target.y < HEIGHT - target.height:
                 target.move(0, +player.speed)
 
-    def collision_with_spots(self, boxes, spots):
+    @staticmethod
+    def collision_with_spots(boxes, spots):
         count = 0
         for box in boxes:
             for spot in spots:
@@ -343,6 +320,7 @@ class GameWindow:
             self.manager.map.draw_background()
             self.manager.map.draw_map()
             self.manager.player.draw()
+            self.manager.collision_catcher(self.manager.player, self.map.boxes)
             self.manager.collision_with_spots(self.map.boxes, self.manager.spots)
             pg.display.flip()
             pg.display.update()

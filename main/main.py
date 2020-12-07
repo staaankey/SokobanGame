@@ -6,6 +6,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREY = (211, 211, 211)
+BROWN = (210, 105, 30)
 YELLOW = (250, 240, 170)
 FPS = 120
 WIDTH = 800
@@ -45,7 +46,6 @@ class Player(GameObject):
         self.x = x
         self.y = y
         self.image = pg.image.load(os.path.abspath("../res/sokoban.png"))
-        self.rect = self.image.get_rect()
         self.width = 20
         self.height = 20
         self.speed = 20
@@ -85,8 +85,7 @@ class Box(GameObject):
         """
         self.x = x
         self.y = y
-        # self.image = pg.image.load(os.path.abspath("../res/box.png"))
-        # self.rect = self.image.get_rect()
+        self.image = pg.image.load(os.path.abspath("../res/box.png"))
         self.width = 20
         self.height = 20
         self.speed = 20
@@ -121,10 +120,6 @@ class Wall(GameObject):
         self.width = 20
         self.height = 20
         self.image = pg.image.load(os.path.abspath("../res/wall.png"))
-        self.rect = self.image.get_rect()
-
-    def is_collided_with(self, sprite):
-        return self.rect.colliderect(sprite.rect)
 
 
 class Spot(GameObject):
@@ -133,7 +128,7 @@ class Spot(GameObject):
         self.y = y
         self.width = 20
         self.height = 20
-        self.image = pg.image.load(os.path.abspath("../res/baggage.png"))
+        self.image = pg.image.load(os.path.abspath("../res/area.png"))
         self.rect = self.image.get_rect()
 
     def draw(self):
@@ -157,8 +152,8 @@ class Map(Wall):
         ######\n
         #    #\n   
         #    #\n    
-        #$ $ #\n  
-     ####    ###\n   
+        #$   #\n  
+     ####   $###\n   
      #   $   $ #\n
      #  # #### #\n     
   ####  # #### #     ######\n            
@@ -206,16 +201,16 @@ class Map(Wall):
 
     def draw_map(self):
         """
-        A function that draws walls on the screen.
+        A function that draws walls, boxes, and spots on the screen.
         """
         for wall in self.walls:
-            pg.draw.rect(SCREEN, BLACK, (wall.x, wall.y, wall.width, wall.height))
+            SCREEN.blit(wall.image, (wall.x, wall.y))
 
         for box in self.boxes:
-            pg.draw.rect(SCREEN, GREY, (box.x, box.y, box.width, box.height))
+            SCREEN.blit(box.image, (box.x, box.y))
 
         for spot in self.spots:
-            pg.draw.rect(SCREEN, WHITE, (spot.x, spot.y, spot.width, spot.height))
+            SCREEN.blit(spot.image, (spot.x, spot.y))
 
 
 class Manager:
@@ -245,58 +240,81 @@ class Manager:
         keys = pg.key.get_pressed()
         if keys[pg.K_RIGHT]:
             self.collision_catcher(self.player, self.boxes, "right")
-            self.collision_with_walls(self.walls, self.player, "right")
+            self.collision_with_walls(self.walls, self.player, "right", self.boxes)
+            self.collision_with_spots(self.boxes, self.spots)
             self.player.move("right")
         if keys[pg.K_LEFT]:
             self.collision_catcher(self.player, self.boxes, "left")
-            self.collision_with_walls(self.walls, self.player, "left")
+            self.collision_with_walls(self.walls, self.player, "left", self.boxes)
+            self.collision_with_spots(self.boxes, self.spots)
             self.player.move("left")
         if keys[pg.K_UP]:
             self.collision_catcher(self.player, self.boxes, "up")
-            self.collision_with_walls(self.walls, self.player, "up")
+            self.collision_with_walls(self.walls, self.player, "up", self.boxes)
+            self.collision_with_spots(self.boxes, self.spots)
             self.player.move("up")
         if keys[pg.K_DOWN]:
             self.collision_catcher(self.player, self.boxes, "down")
-            self.collision_with_walls(self.walls, self.player, "down")
+            self.collision_with_walls(self.walls, self.player, "down", self.boxes)
+            self.collision_with_spots(self.boxes, self.spots)
             self.player.move("down")
 
-    def collision_with_walls(self, walls, player, direction):
+    def collision_with_walls(self, walls, player, direction, boxes):
         """
         A function that controls the collision of the player, blocks and walls.
+        :param boxes:
         :param direction:
         :param walls:
         :param player:
         :return:
         """
-        for wall in walls:
-            if wall.x - wall.width == player.x and player.y == wall.y and direction == "right":
-                self.player.move("left")
-            elif wall.x + wall.width == player.x and player.y == wall.y and direction == "left":
-                self.player.move("right")
+        for box in boxes:
+            for wall in walls:
+                if wall.x - wall.width == player.x and player.y == wall.y and direction == "right":
+                    self.player.move("left")
 
-            elif player.x == wall.x and wall.y + wall.height == player.y and wall.y > 0 and direction == "up":
-                self.player.move("down")
+                elif wall.x == box.x and box.y == wall.y and direction == "right":
+                    self.player.move("left")
+                    box.move(-player.speed, 0)
 
-            elif wall.x == player.x and wall.y - wall.height == player.y and direction == "down":
-                self.player.move("up")
+                elif wall.x + wall.width == player.x and player.y == wall.y and direction == "left":
+                    self.player.move("right")
 
-    def collision_catcher(self, player, targets, direction):
+                elif wall.x == box.x and box.y == wall.y and direction == "left":
+                    self.player.move("right")
+                    box.move(player.speed, 0)
+
+                elif player.x == wall.x and wall.y + wall.height == player.y and wall.y > 0 and direction == "up":
+                    self.player.move("down")
+
+                elif box.x == wall.x and wall.y == box.y and direction == "up":
+                    self.player.move("down")
+                    box.move(0, +player.speed)
+
+                elif wall.x == player.x and wall.y - wall.height == player.y and direction == "down":
+                    self.player.move("up")
+
+                elif wall.x == box.x and wall.y == box.y and direction == "down":
+                    self.player.move("up")
+                    box.move(0, -player.speed)
+
+    def collision_catcher(self, player, boxes, direction):
         """
         A function that controls the collision of the player's object and boxes on the playing field.
         :param direction:
         :param player:
-        :param targets:
+        :param boxes:
         :return:
         """
-        for target in targets:
-            if target.x - target.width == player.x and player.y == target.y and direction == "right":
-                target.move(+player.speed, 0)
-            elif target.x + target.width == player.x and player.y == target.y and direction == "left":
-                target.move(-player.speed, 0)
-            elif player.x == target.x and target.y + target.height == player.y and direction == "up":
-                target.move(0, -player.speed)
-            elif target.x == player.x and target.y - target.height == player.y and direction == "down":
-                target.move(0, +player.speed)
+        for box in boxes:
+            if box.x - box.width == player.x and player.y == box.y and direction == "right":
+                box.move(+player.speed, 0)
+            elif box.x + box.width == player.x and player.y == box.y and direction == "left":
+                box.move(-player.speed, 0)
+            elif player.x == box.x and box.y + box.height == player.y and direction == "up":
+                box.move(0, -player.speed)
+            elif box.x == player.x and box.y - box.height == player.y and direction == "down":
+                box.move(0, +player.speed)
 
     def collision_with_spots(self, boxes, spots):
         count = 0
@@ -342,8 +360,7 @@ class GameWindow:
 
             self.manager.map.draw_background()
             self.manager.map.draw_map()
-            self.manager.player.draw()
-            self.manager.collision_with_spots(self.map.boxes, self.manager.spots)
+            SCREEN.blit(self.manager.player.image, (self.map.player.x, self.map.player.y))
             pg.display.flip()
             pg.display.update()
             clock.tick(FPS)

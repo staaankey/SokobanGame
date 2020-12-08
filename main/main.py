@@ -20,8 +20,7 @@ def getRandColor():
     """
     return randint(0, 255), randint(0, 255), randint(0, 255)
 
-
-class GameObject(pg.sprite.Sprite):
+class GameObject:
     """
 
     """
@@ -30,7 +29,6 @@ class GameObject(pg.sprite.Sprite):
         """
         :param img:
         """
-        super().__init__(self)
         self.image = pg.image.load(img)
         self.x = 0
         self.y = 0
@@ -242,21 +240,25 @@ class Manager:
             self.collision_catcher(self.player, self.boxes, "right")
             self.collision_with_walls(self.walls, self.player, "right", self.boxes)
             self.collision_with_spots(self.boxes, self.spots)
+
             self.player.move("right")
         if keys[pg.K_LEFT]:
             self.collision_catcher(self.player, self.boxes, "left")
             self.collision_with_walls(self.walls, self.player, "left", self.boxes)
             self.collision_with_spots(self.boxes, self.spots)
+
             self.player.move("left")
         if keys[pg.K_UP]:
             self.collision_catcher(self.player, self.boxes, "up")
             self.collision_with_walls(self.walls, self.player, "up", self.boxes)
             self.collision_with_spots(self.boxes, self.spots)
+
             self.player.move("up")
         if keys[pg.K_DOWN]:
             self.collision_catcher(self.player, self.boxes, "down")
             self.collision_with_walls(self.walls, self.player, "down", self.boxes)
             self.collision_with_spots(self.boxes, self.spots)
+
             self.player.move("down")
 
     def collision_with_walls(self, walls, player, direction, boxes):
@@ -306,6 +308,7 @@ class Manager:
         :param boxes:
         :return:
         """
+
         for box in boxes:
             if box.x - box.width == player.x and player.y == box.y and direction == "right":
                 box.move(+player.speed, 0)
@@ -315,6 +318,23 @@ class Manager:
                 box.move(0, -player.speed)
             elif box.x == player.x and box.y - box.height == player.y and direction == "down":
                 box.move(0, +player.speed)
+
+        for i in range(len(self.boxes)):
+            for j in range(i + 1, len(self.boxes)):
+                if self.boxes[i].x == self.boxes[j].x and self.boxes[i].y == self.boxes[j].y and direction == "left":
+                    self.boxes[j].move(+self.player.speed, 0)
+                    self.player.move("right")
+                elif self.boxes[i].x == self.boxes[j].x and self.boxes[i].y == self.boxes[j].y and direction == "right":
+                    self.boxes[j].move(-self.player.speed, 0)
+                    self.player.move("left")
+                elif self.boxes[i].x == self.boxes[j].x and self.boxes[i].y == self.boxes[j].y and direction == "up":
+                    self.boxes[j].move(0, +self.player.speed)
+                    self.player.move("down")
+                elif self.boxes[i].x == self.boxes[j].x and self.boxes[i].y == self.boxes[j].y and direction == "down":
+                    self.boxes[j].move(0, -self.player.speed)
+                    self.player.move("up")
+
+
 
     def collision_with_spots(self, boxes, spots):
         count = 0
@@ -326,7 +346,6 @@ class Manager:
                         exit()
                     else:
                         continue
-
 
 class GameWindow:
     """
@@ -364,6 +383,10 @@ class GameWindow:
             pg.display.flip()
             pg.display.update()
             clock.tick(FPS)
+
+
+
+
 
 
 def main():

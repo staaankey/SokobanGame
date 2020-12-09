@@ -172,7 +172,7 @@ class Map(Wall):
                 self.y += 10
                 self.x = 0
 
-            elif char == "#":
+            elif char == "X":
                 self.walls.append(Wall(self.x, self.y))
                 self.x += 20
 
@@ -183,11 +183,11 @@ class Map(Wall):
             elif char == " ":
                 self.x += 20
 
-            elif char == "$":
+            elif char == "*":
                 self.boxes.append(Box(self.x, self.y))
                 self.x += 20
 
-            elif char == "o":
+            elif char == ".":
                 self.spots.append(Spot(self.x, self.y))
                 self.x += 20
 
@@ -217,7 +217,7 @@ class Manager:
     """
 
     def __init__(self):
-        self.index = 0
+        self.index = 6
         self.map = Map(0, 0, self.index)
         self.map.create_level()
         self.player = self.map.player

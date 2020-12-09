@@ -20,6 +20,7 @@ def getRandColor():
     """
     return randint(0, 255), randint(0, 255), randint(0, 255)
 
+
 class GameObject:
     """
 
@@ -128,9 +129,21 @@ class Spot(GameObject):
         self.height = 20
         self.image = pg.image.load(os.path.abspath("../res/area.png"))
         self.rect = self.image.get_rect()
+        self.isActive = True
 
     def draw(self):
         SCREEN.blit((self.image, [self.x, self.y]))
+
+    def change_picture(self, spot, box):
+        if spot.x == box.x and spot.y == box.y:
+            spot.image = pg.image.load(os.path.abspath("../res/box.png"))
+        else:
+            spot.image = pg.image.load(os.path.abspath("../res/area.png"))
+
+
+
+
+
 
 
 class Map(Wall):
@@ -227,6 +240,9 @@ class Manager:
         self.boxes = boxes
         self.move_ability = False
 
+    def process(self):
+        pass
+
     def handler_events(self, event):
         """
         Simple event handler. Fires during certain actions on the map.
@@ -239,25 +255,25 @@ class Manager:
         if keys[pg.K_RIGHT]:
             self.collision_catcher(self.player, self.boxes, "right")
             self.collision_with_walls(self.walls, self.player, "right", self.boxes)
-            self.collision_with_spots(self.boxes, self.spots)
+            self.counter(self.boxes, self.spots)
 
             self.player.move("right")
         if keys[pg.K_LEFT]:
             self.collision_catcher(self.player, self.boxes, "left")
             self.collision_with_walls(self.walls, self.player, "left", self.boxes)
-            self.collision_with_spots(self.boxes, self.spots)
+            self.counter(self.boxes, self.spots)
 
             self.player.move("left")
         if keys[pg.K_UP]:
             self.collision_catcher(self.player, self.boxes, "up")
             self.collision_with_walls(self.walls, self.player, "up", self.boxes)
-            self.collision_with_spots(self.boxes, self.spots)
+            self.counter(self.boxes, self.spots)
 
             self.player.move("up")
         if keys[pg.K_DOWN]:
             self.collision_catcher(self.player, self.boxes, "down")
             self.collision_with_walls(self.walls, self.player, "down", self.boxes)
-            self.collision_with_spots(self.boxes, self.spots)
+            self.counter(self.boxes, self.spots)
 
             self.player.move("down")
 
@@ -334,18 +350,19 @@ class Manager:
                     self.boxes[j].move(0, -self.player.speed)
                     self.player.move("up")
 
+    def counter(self, boxes, spots):
+        for spot in spots:
+            for box in boxes:
+                if spot.x == box.x and spot.y == box.y:
+                    spot.image = box.image
+                    break
+                else:
+                    spot.image = pg.image.load(os.path.abspath("../res/area.png"))
 
 
-    def collision_with_spots(self, boxes, spots):
-        count = 0
-        for box in boxes:
-            for spot in spots:
-                if box.x == spot.x and box.y == spot.y:
-                    count += 1
-                    if count == len(spots):
-                        exit()
-                    else:
-                        continue
+
+
+
 
 class GameWindow:
     """
@@ -383,10 +400,6 @@ class GameWindow:
             pg.display.flip()
             pg.display.update()
             clock.tick(FPS)
-
-
-
-
 
 
 def main():

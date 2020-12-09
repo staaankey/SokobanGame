@@ -1,5 +1,6 @@
 import os
 import pygame as pg
+import levels
 from random import randint
 
 WHITE = (255, 255, 255)
@@ -141,13 +142,8 @@ class Spot(GameObject):
             spot.image = pg.image.load(os.path.abspath("../res/area.png"))
 
 
-
-
-
-
-
 class Map(Wall):
-    def __init__(self, x, y):
+    def __init__(self, x, y, i):
         """
         A constructor that initializes the game board.
         :param x:
@@ -159,22 +155,7 @@ class Map(Wall):
         self.boxes = []
         self.spots = []
         self.player = None
-        self.level = ("""
-        ######\n
-        #    #\n   
-        #    #\n    
-        #$   #\n  
-     ####   $###\n   
-     #   $   $ #\n
-     #  # #### #\n     
-  ####  # #### #     ######\n            
-  #     # #### #######  oo#\n
-  # $    $              oo#\n
-  ####### ##### #@####  oo#\n 
-        #       ###  ######\n
-        #       #\n
-        #########\n      
-        """)
+        self.level = levels.list_of_levels[i]
 
     def draw_background(self):
         """
@@ -210,6 +191,10 @@ class Map(Wall):
                 self.spots.append(Spot(self.x, self.y))
                 self.x += 20
 
+            elif char == ",":
+                self.x += 0
+                self.y += 0
+
     def draw_map(self):
         """
         A function that draws walls, boxes, and spots on the screen.
@@ -231,17 +216,23 @@ class Manager:
     Stores the main objects on the map.
     """
 
-    def __init__(self, main_map, walls, spots, boxes):
-        self.map = main_map
+    def __init__(self):
+        self.index = 0
+        self.map = Map(0, 0, self.index)
         self.map.create_level()
         self.player = self.map.player
         self.walls = self.map.walls
-        self.spots = spots
-        self.boxes = boxes
-        self.move_ability = False
+        self.spots = self.map.spots
+        self.boxes = self.map.boxes
 
-    def process(self):
-        pass
+    def init_map(self):
+        self.index += 1
+        self.map = Map(0, 0, self.index)
+        self.map.create_level()
+        self.player = self.map.player
+        self.walls = self.map.walls
+        self.spots = self.map.spots
+        self.boxes = self.map.boxes
 
     def handler_events(self, event):
         """
@@ -351,17 +342,17 @@ class Manager:
                     self.player.move("up")
 
     def counter(self, boxes, spots):
+        count = 0
         for spot in spots:
             for box in boxes:
                 if spot.x == box.x and spot.y == box.y:
+                    count += 1
                     spot.image = box.image
+                    if count == len(spots):
+                        self.init_map()
                     break
                 else:
                     spot.image = pg.image.load(os.path.abspath("../res/area.png"))
-
-
-
-
 
 
 class GameWindow:
@@ -377,8 +368,7 @@ class GameWindow:
         self.width = 800
         self.height = 600
         self.title = "Sokoban"
-        self.map = Map(0, 0)
-        self.manager = Manager(self.map, self.map.walls, self.map.spots, self.map.boxes)
+        self.manager = Manager()
         SCREEN.fill(WHITE)
         pg.display.set_caption(self.title)
 
@@ -396,7 +386,7 @@ class GameWindow:
 
             self.manager.map.draw_background()
             self.manager.map.draw_map()
-            SCREEN.blit(self.manager.player.image, (self.map.player.x, self.map.player.y))
+            SCREEN.blit(self.manager.player.image, (self.manager.map.player.x, self.manager.map.player.y))
             pg.display.flip()
             pg.display.update()
             clock.tick(FPS)

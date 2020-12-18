@@ -29,8 +29,10 @@ class GameObject:
 
     def __init__(self, img):
         """
+
         :param img:
         """
+        super.__init__()
         self.image = pg.image.load(img)
         self.x = 0
         self.y = 0
@@ -54,7 +56,7 @@ class Player(GameObject):
         """
         A function that is responsible for moving the player around the playing field in a certain direction.
         :param direction:
-        :return:
+        :return:None
         """
         if direction == "right" and self.x < WIDTH - self.width:  # TODO: Fix me
             self.x += self.speed
@@ -80,8 +82,8 @@ class Box(GameObject):
     def __init__(self, x, y):
         """
 
-        :param x:
-        :param y:
+        :param x: coordinate x
+        :param y: coordinate y
         """
         self.x = x
         self.y = y
@@ -142,7 +144,7 @@ class Spot(GameObject):
             spot.image = pg.image.load(os.path.abspath("../res/area.png"))
 
 
-class Map(Wall):
+class Map:
     def __init__(self, x, y, i):
         """
         A constructor that initializes the game board.
@@ -217,7 +219,7 @@ class Manager:
     """
 
     def __init__(self):
-        self.index = 6
+        self.index = 0
         self.map = Map(0, 0, self.index)
         self.map.create_level()
         self.player = self.map.player
@@ -225,7 +227,11 @@ class Manager:
         self.spots = self.map.spots
         self.boxes = self.map.boxes
 
-    def init_map(self):
+    def init_map(self):  # TODO: Fix me
+        """
+        Initialization of map.
+        :return: None
+        """
         self.index += 1
         self.map = Map(0, 0, self.index)
         self.map.create_level()
@@ -238,7 +244,7 @@ class Manager:
         """
         Simple event handler. Fires during certain actions on the map.
         :param event:
-        :return:
+        :return: bool
         """
         if event.type == pg.QUIT:
             return True
@@ -275,11 +281,11 @@ class Manager:
         :param direction:
         :param walls:
         :param player:
-        :return:
+        :return: None
         """
         for box in boxes:
             for wall in walls:
-                if wall.x - wall.width == player.x and player.y == wall.y and direction == "right":
+                if wall.x - wall.width == player.x and player.y == wall.y and direction == "right": #moving box right
                     self.player.move("left")
 
                 elif wall.x == box.x and box.y == wall.y and direction == "right":
@@ -310,10 +316,10 @@ class Manager:
     def collision_catcher(self, player, boxes, direction):
         """
         A function that controls the collision of the player's object and boxes on the playing field.
-        :param direction:
-        :param player:
-        :param boxes:
-        :return:
+        :param direction: direction of moving
+        :param player: object of main player
+        :param boxes: list of boxes
+        :return: None
         """
 
         for box in boxes:
@@ -342,6 +348,12 @@ class Manager:
                     self.player.move("up")
 
     def counter(self, boxes, spots):
+        """
+        The counter counts the boxes in their places.
+        :param boxes: list of boxes.
+        :param spots: list of spots.
+        :return: None
+        """
         count = 0
         for spot in spots:
             for box in boxes:

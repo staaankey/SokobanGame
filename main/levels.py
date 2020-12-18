@@ -1,19 +1,18 @@
 list_of_levels = [
 """
 @ * .\n
-""",
-"""
-    XXXXX\n             
-    X   X\n             
-    X*  X\n             
-  XXX  *XXX\n           
-  X  *  * X\n          
-XXX X XXX X     XXXXXX\n
-X   X XXX XXXXXXX  ..X\n
-X *  *             ..X\n
-XXXXX XXXX X@XXXX  ..X\n
-    X      XXX  XXXXXX\n
-    XXXXXXXX\n     
+""", """
+            XXXXX\n             
+            X   X\n             
+            X*  X\n             
+          XXX  *XXX\n           
+          X  *  * X\n          
+        XXX X XXX X     XXXXXX\n
+        X   X XXX XXXXXXX  ..X\n
+        X *  *             ..X\n
+        XXXXX XXXX X@ XXX  ..X\n
+            X      XXXX XXXXXX\n
+            XXXXXXXX\n     
 """,
 """
 XXXXXXXXXXXX\n  

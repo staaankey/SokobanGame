@@ -55,7 +55,7 @@ class Player(GameObject):
     def move(self, direction):
         """
         A function that is responsible for moving the player around the playing field in a certain direction.
-        :param direction:
+        :param direction: direction of moving
         :return:None
         """
         if direction == "right" and self.x < WIDTH - self.width:  # TODO: Fix me

@@ -30,7 +30,7 @@ class GameObject:
     def __init__(self, img):
         """
 
-        :param img:
+        :param img: image of object
         """
         super.__init__()
         self.image = pg.image.load(img)
@@ -102,8 +102,8 @@ class Box(GameObject):
     def move(self, x, y):
         """
         A function that is responsible for displacing an object along the x and y axes.
-        :param x:
-        :param y:
+        :param x: position
+        :param y: position
         :return:
         """
         self.x += x
@@ -114,8 +114,8 @@ class Wall(GameObject):
     def __init__(self, x, y):
         """
         A constructor that initializes the game board.
-        :param x:
-        :param y:
+        :param x: wall's x coordinate
+        :param y: wall's y coordinate
         """
         self.x = x
         self.y = y
@@ -148,8 +148,8 @@ class Map:
     def __init__(self, x, y, i):
         """
         A constructor that initializes the game board.
-        :param x:
-        :param y:
+        :param x: x coordinate of the map
+        :param y: y coordinate of the map
         """
         self.x = x
         self.y = y
@@ -243,7 +243,7 @@ class Manager:
     def handler_events(self, event):
         """
         Simple event handler. Fires during certain actions on the map.
-        :param event:
+        :param event: events
         :return: bool
         """
         if event.type == pg.QUIT:
@@ -277,10 +277,10 @@ class Manager:
     def collision_with_walls(self, walls, player, direction, boxes):
         """
         A function that controls the collision of the player, blocks and walls.
-        :param boxes:
-        :param direction:
-        :param walls:
-        :param player:
+        :param boxes: list of boxes
+        :param direction: direction of moving
+        :param walls: list of walls
+        :param player: oject of player
         :return: None
         """
         for box in boxes:

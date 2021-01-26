@@ -4,7 +4,7 @@ The game rules you can find on Wikipedia.
 
 ## Installation
 1. Install Python 3.x
-2. Run game in IDE or in CMD/Bash. (for windows write in CMD: python main.py)
+2. Run game in IDE or in CMD/Bash. (for windows write in CMD: python main.py, for Linux idk exactly, but i think you can write in Bash same command)
 3. For moving you can use arrows on your keyboard to move right/left etc.
 
 To contact with me:

@@ -1,6 +1,6 @@
 # Sokoban game in Python
 
-The game rules you can find on Wikipedia. 
+The game rules you can find on Wikipedia. [Click here](https://cutt.ly/Kj9gong)
 
 ## Installation
 1. Install Python 3.x
